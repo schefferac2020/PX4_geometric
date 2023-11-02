@@ -399,12 +399,12 @@ ControlAllocator::Run()
 		c[0](4) = _thrust_sp(1);
 		c[0](5) = _thrust_sp(2);
 
-		/*** CUSTOM ***/
+		/*** DREW'S CRAP ***/
 		// PX4_INFO("thrust_sp: %f  %f  %f \n", (double)_thrust_sp(0), (double)_thrust_sp(1), (double)_thrust_sp(2));
-		// Here the thrust_sp is between 0 and 1
+		// // Here the thrust_sp is between 0 and 1
 		// PX4_INFO("torque_sp: %f  %f  %f \n", (double)_torque_sp(0), (double)_torque_sp(1), (double)_torque_sp(2));
-		// Here the torque_sp seems to be between 0 and 1
-		/*** END-CUSTOM ***/
+		// Here the torque_sp seems to be between -1 and 0
+		/*** DREW'S CRAP ***/
 
 		if (_num_control_allocation > 1) {
 			_vehicle_torque_setpoint1_sub.copy(&vehicle_torque_setpoint);
@@ -422,9 +422,11 @@ ControlAllocator::Run()
 		   ( source == EffectivenessSource::TILTING_MULTIROTOR &&
 		     _num_control_allocation == 1 ) )
 		{
+			
 			for (int i = 0; i < _num_control_allocation; ++i) {
 
 				_control_allocation[i]->setControlSetpoint(c[i]);
+				// DREW: PX4_INFO("Allocation number is %d and the values are....%f %f %f %f %f %f\n",i,(double)c[i](0), (double)c[i](1), (double)c[i](2), (double)c[i](3), (double)c[i](4), (double)c[i](5));
 
 				// Do allocation
 				_control_allocation[i]->allocate();

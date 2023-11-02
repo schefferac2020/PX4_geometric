@@ -1,0 +1,12 @@
+menuconfig MODULES_DREWS_MODULE
+	bool "drews_module"
+	default n
+	---help---
+		Enable support for sih
+
+menuconfig USER_DREWS_MODULE
+	bool "drews_module running as userspace module"
+	default y
+	depends on BOARD_PROTECTED && MODULES_DREWS_MODULE
+	---help---
+		Put drews_module in userspace memory

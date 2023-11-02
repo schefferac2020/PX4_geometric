@@ -61,6 +61,10 @@ fi
 #
 mc_rate_control start
 
+# DREW START
+drews_module start
+# DREW END
+
 #
 # Start Multicopter Attitude Controller.
 #

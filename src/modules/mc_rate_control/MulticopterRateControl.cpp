@@ -101,6 +101,8 @@ MulticopterRateControl::parameters_updated()
 void
 MulticopterRateControl::Run()
 {
+
+	PX4_INFO("IN the RUn of RATE");
 	if (should_exit()) {
 		_vehicle_angular_velocity_sub.unregisterCallback();
 		exit_and_cleanup();
