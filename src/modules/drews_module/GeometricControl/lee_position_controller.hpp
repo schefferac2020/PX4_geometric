@@ -18,6 +18,24 @@
  * limitations under the License.
  */
 
+/** 
+ * To make this work we need the following: 
+ * d
+ * The current "odometry" --> the world position (vector)
+                              orientation wrt W frame (quaternion)
+                              body velocity (vector),
+                              body angular_velocity (vector)
+ * A trajectory setpoint (x, y, z, yaw) <-- World frame
+ * An inertia matrix 
+ * 
+ * 
+ * I think we need the output acceleration and angular acceleration to be normalized? 
+ * 
+ * A bunch of gains... Can we steal some of these from the PID controller? 
+ * 
+ * I think an output thrust of 0.5 means it's supposed to be hovering if straight up... 
+*/
+
 #ifndef ROTORS_CONTROL_LEE_POSITION_CONTROLLER_H
 #define ROTORS_CONTROL_LEE_POSITION_CONTROLLER_H
 

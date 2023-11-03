@@ -294,9 +294,26 @@ DrewsModule::Run()
 	// Test to see if we can get new local_position...
 	vehicle_local_position_s local_pos;
 	if (_vehicle_local_pos_sub.update(&local_pos)) {
-		// PX4_INFO("RECIEVED UPDATE: The new position is %f, %f, %f\n", (double)local_pos.x, (double)local_pos.y, (double)local_pos.z);
+		// PX4_INFO("RECIEVED UPDATE 1: The new position is %f, %f, %f\n", (double)local_pos.x, (double)local_pos.y, (double)local_pos.z);
 		(void)local_pos;
 	}
+
+	// TODO: get orientation... --- I think we want the vehicle_attitude uORB topic
+	// TODO: get body velocity --- 
+	// TODO: get angular velocity (DONE LOOK BELOW)
+
+	vehicle_odometry_s curr_odom;
+	if (_vehicle_odometry_sub.update(&curr_odom)) {
+		PX4_INFO("RECIEVED UPDATE 2: The new position is %f, %f, %f\n", (double)curr_odom.x, (double)curr_odom.y, (double)curr_odom.z);
+		PX4_INFO("RECIEVED UPDATE 2: The new orientation is %f, %f, %f, %f\n", (double)curr_odom.q[0], (double)curr_odom.q[1], (double)curr_odom.q[2], (double)curr_odom.q[3]);
+		PX4_INFO("RECIEVED UPDATE 2: The new body velocity is %f, %f, %f\n", (double)curr_odom.vx, (double)curr_odom.vy, (double)curr_odom.vz);
+		
+		(void)curr_odom;
+	}
+
+	// I think we can get all of this from the vehicle_odometry topic maybe?
+
+	
 
 
 

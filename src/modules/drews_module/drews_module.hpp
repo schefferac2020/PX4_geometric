@@ -130,6 +130,7 @@
 #include <uORB/topics/vehicle_thrust_setpoint.h>
 #include <uORB/topics/vehicle_torque_setpoint.h>
 #include <uORB/topics/vehicle_local_position.h>
+#include <uORB/topics/vehicle_odometry.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 
 /*** CUSTOM ***/
@@ -186,6 +187,7 @@ private:
 	uORB::SubscriptionCallbackWorkItem _vehicle_angular_velocity_sub{this, ORB_ID(vehicle_angular_velocity)};
 	uORB::Subscription _vehicle_angular_acceleration_sub{ORB_ID(vehicle_angular_acceleration)};
 	uORB::SubscriptionCallbackWorkItem _vehicle_local_pos_sub {this, ORB_ID(vehicle_local_position)};
+	uORB::SubscriptionCallbackWorkItem _vehicle_odometry_sub {this, ORB_ID(vehicle_odometry)};
 
 	// Drew: Position setpoint stuff
 	uORB::Subscription _trajectory_setpoint_sub {ORB_ID(trajectory_setpoint)};
