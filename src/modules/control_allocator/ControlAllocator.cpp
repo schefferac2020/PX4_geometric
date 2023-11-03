@@ -406,7 +406,7 @@ ControlAllocator::Run()
 		// Here the torque_sp seems to be between -1 and 0
 		/*** DREW'S CRAP ***/
 
-		if (_num_control_allocation > 1) {
+		if (_num_control_allocation > 1) { // DREW: don't understand what this is
 			_vehicle_torque_setpoint1_sub.copy(&vehicle_torque_setpoint);
 			_vehicle_thrust_setpoint1_sub.copy(&vehicle_thrust_setpoint);
 			c[1](0) = vehicle_torque_setpoint.xyz[0];

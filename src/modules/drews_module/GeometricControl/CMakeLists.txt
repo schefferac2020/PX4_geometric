@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2018 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2019 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,20 +30,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-add_subdirectory(RateControl)
-add_subdirectory(GeometricControl)
 
-px4_add_module(
-	MODULE modules__drews_module
-	MAIN drews_module
-	SRCS
-		drews_module.cpp
-		drews_module.hpp
-	DEPENDS
-		circuit_breaker
-		mathlib
-		DrewRateControl
-		GeometricControl
-		px4_work_queue
-	)
-
+px4_add_library(GeometricControl
+	lee_position_controller.cpp
+	lee_position_controller.hpp
+)
+target_compile_options(GeometricControl PRIVATE ${MAX_CUSTOM_OPT_LEVEL})
+target_include_directories(GeometricControl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(GeometricControl PRIVATE mathlib)
