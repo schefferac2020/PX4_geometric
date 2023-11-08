@@ -133,6 +133,8 @@
 #include <uORB/topics/vehicle_odometry.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 
+#include <lee_position_controller.hpp>
+
 /*** CUSTOM ***/
 #include <uORB/topics/tilting_servo_sp.h>
 /*** END-CUSTOM ***/
@@ -172,6 +174,7 @@ private:
 	void publishThrustSetpoint(const hrt_abstime &timestamp_sample);
 
 	RateControl _rate_control; ///< class for rate control calculations
+	LeePositionController _geometric_control;
 
 	uORB::Subscription _battery_status_sub{ORB_ID(battery_status)};
 	uORB::Subscription _landing_gear_sub{ORB_ID(landing_gear)};

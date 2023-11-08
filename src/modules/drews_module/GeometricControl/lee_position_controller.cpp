@@ -19,8 +19,13 @@
  */
 
 #include "lee_position_controller.hpp"
-
-
+#include <iostream>
+/**
+ * X Set the parameters 
+ * X I need a way of updating the odometry....
+ * X Be able to set a goal point...
+ * Calculate the desired acceleration
+*/
 
 LeePositionController::LeePositionController()
     : initialized_params_(false),
@@ -31,17 +36,23 @@ LeePositionController::LeePositionController()
 LeePositionController::~LeePositionController() {}
 
 void LeePositionController::InitializeParameters() {
-  // calculateAllocationMatrix(vehicle_parameters_.rotor_configuration_, &(controller_parameters_.allocation_matrix_));
-  // // To make the tuning independent of the inertia matrix we divide here.
-  // normalized_attitude_gain_ = controller_parameters_.attitude_gain_.transpose()
-  //     * vehicle_parameters_.inertia_.inverse();
-  // // To make the tuning independent of the inertia matrix we divide here.
-  // normalized_angular_rate_gain_ = controller_parameters_.angular_rate_gain_.transpose()
-  //     * vehicle_parameters_.inertia_.inverse();
+  double kDefaultInertiaXx = 0.0347563;
+  double kDefaultInertiaYy = 0.0458929;
+  double kDefaultInertiaZz = 0.0977;
+  
+  inertia_matrix(0, 0) = kDefaultInertiaXx;
+  inertia_matrix(1, 1) = kDefaultInertiaYy;
+  inertia_matrix(2, 2) = kDefaultInertiaZz;
 
-  // Eigen::Matrix4d I;
+  vehicle_mass = 1.56779;
+
+
+  // (1x3) = (1 x 3) (3 * 3)
+  normalized_attitude_gain_ = (controller_parameters_.attitude_gain_.transpose() * inertia_matrix.I()).T(); // TODO: Maybe these aren't supposed to be transpose? 
+  normalized_angular_rate_gain_ = (controller_parameters_.angular_rate_gain_.transpose() * inertia_matrix.I()).T();
+  // matrix::SquareMatrix<float, 4> I;  
   // I.setZero();
-  // I.block<3, 3>(0, 0) = vehicle_parameters_.inertia_;
+  // I.slice<3, 3>(0, 0) = // Some inertia matrix here...
   // I(3, 3) = 1;
   // angular_acc_to_rotor_velocities_.resize(vehicle_parameters_.rotor_configuration_.rotors.size(), 4);
   // // Calculate the pseude-inverse A^{ \dagger} and then multiply by the inertia matrix I.
@@ -49,7 +60,7 @@ void LeePositionController::InitializeParameters() {
   // angular_acc_to_rotor_velocities_ = controller_parameters_.allocation_matrix_.transpose()
   //     * (controller_parameters_.allocation_matrix_
   //     * controller_parameters_.allocation_matrix_.transpose()).inverse() * I;
-  // initialized_params_ = true;
+  initialized_params_ = true;
 }
 
 // void LeePositionController::CalculateRotorVelocities(Eigen::VectorXd* rotor_velocities) const {
@@ -81,33 +92,43 @@ void LeePositionController::InitializeParameters() {
   // *rotor_velocities = rotor_velocities->cwiseSqrt();
 // }
 
-// void LeePositionController::SetOdometry(const EigenOdometry& odometry) {
-//   odometry_ = odometry;
-// }
+void LeePositionController::SetOdometry(const DrewOdometry& odometry) {
+  std::cout << "Just recieved a new odometry measurement!" << std::endl;
+  odometry_ = odometry;
+}
 
-// void LeePositionController::SetTrajectoryPoint(
-//     const mav_msgs::EigenTrajectoryPoint& command_trajectory) {
-//   command_trajectory_ = command_trajectory;
-//   controller_active_ = true;
-// }
+void LeePositionController::SetTrajectoryPoint(
+    const DrewTrajPoint& command_trajectory) {
+  command_trajectory_ = command_trajectory;
+  controller_active_ = true;
+}
+
+matrix::Vector3d cwiseProduct(const matrix::Vector3d& a, const matrix::Vector3d& b){
+  return matrix::Vector3d({a(0)*b(0), a(1)*b(1), a(2)*b(2)});
+}
 
 void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceleration) const {
-  // assert(acceleration);
+  assert(acceleration);
 
-  // Eigen::Vector3d position_error;
-  // position_error = odometry_.position - command_trajectory_.position_W;
+  matrix::Vector3d position_error;
+  position_error = odometry_.position - command_trajectory_.position_W;
+  std::cout << "The normed position error is " << position_error.norm() << std::endl;
+  
+  // Transform velocity to world frame.
+  const matrix::Quaterniond q_W_I = odometry_.orientation;
+  matrix::Quaterniond test;
+  matrix::Vector3d velocity_W = q_W_I.rotateVector(odometry_.velocity);
 
-  // // Transform velocity to world frame.
-  // const Eigen::Matrix3d R_W_I = odometry_.orientation.toRotationMatrix();
-  // Eigen::Vector3d velocity_W =  R_W_I * odometry_.velocity;
-  // Eigen::Vector3d velocity_error;
-  // velocity_error = velocity_W - command_trajectory_.velocity_W;
+  matrix::Vector3d velocity_error;
+  velocity_error = velocity_W - command_trajectory_.velocity_W;
+  std::cout << "The normed velocity error is " << velocity_error.norm() << std::endl;
 
-  // Eigen::Vector3d e_3(Eigen::Vector3d::UnitZ());
-
-  // *acceleration = (position_error.cwiseProduct(controller_parameters_.position_gain_)
-  //     + velocity_error.cwiseProduct(controller_parameters_.velocity_gain_)) / vehicle_parameters_.mass_
-  //     - vehicle_parameters_.gravity_ * e_3 - command_trajectory_.acceleration_W;
+  
+  matrix::Vector3d e3({0, 0, 1});
+  
+  *acceleration = (cwiseProduct(position_error, controller_parameters_.position_gain_)
+      + cwiseProduct(velocity_error, controller_parameters_.velocity_gain_)) / vehicle_mass
+      - 9.81 * e3 - command_trajectory_.acceleration_W;
 }
 
 // Implementation from the T. Lee et al. paper

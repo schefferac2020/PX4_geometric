@@ -33,6 +33,8 @@
 
 #include "drews_module.hpp"
 
+#include <iostream>
+
 // #include <px4_platform_common/getopt.h>
 // #include <px4_platform_common/log.h>
 // #include <px4_platform_common/posix.h>
@@ -246,6 +248,10 @@ DrewsModule::init()
 		return false;
 	}
 
+	// Set the desired trajectory...
+	DrewTrajPoint traj_point = {{1, 0, 0}, {2, 0, 0}, {1, 0, 0}};
+	_geometric_control.SetTrajectoryPoint(traj_point);
+
 	return true;
 }
 
@@ -304,12 +310,23 @@ DrewsModule::Run()
 
 	vehicle_odometry_s curr_odom;
 	if (_vehicle_odometry_sub.update(&curr_odom)) {
-		PX4_INFO("RECIEVED UPDATE 2: The new position is %f, %f, %f\n", (double)curr_odom.x, (double)curr_odom.y, (double)curr_odom.z);
-		PX4_INFO("RECIEVED UPDATE 2: The new orientation is %f, %f, %f, %f\n", (double)curr_odom.q[0], (double)curr_odom.q[1], (double)curr_odom.q[2], (double)curr_odom.q[3]);
-		PX4_INFO("RECIEVED UPDATE 2: The new body velocity is %f, %f, %f\n", (double)curr_odom.vx, (double)curr_odom.vy, (double)curr_odom.vz);
+		// PX4_INFO("RECIEVED UPDATE 2: The new position is %f, %f, %f\n", (double)curr_odom.x, (double)curr_odom.y, (double)curr_odom.z);
+		// PX4_INFO("RECIEVED UPDATE 2: The new orientation is %f, %f, %f, %f\n", (double)curr_odom.q[0], (double)curr_odom.q[1], (double)curr_odom.q[2], (double)curr_odom.q[3]);
+		// PX4_INFO("RECIEVED UPDATE 2: The new body velocity is %f, %f, %f\n", (double)curr_odom.vx, (double)curr_odom.vy, (double)curr_odom.vz);
 		
-		(void)curr_odom;
+		matrix::Vector3d position({curr_odom.x, curr_odom.y, curr_odom.z});
+		matrix::Quaterniond orientation({(double)curr_odom.q[0], (double)curr_odom.q[1], (double)curr_odom.q[2], (double)curr_odom.q[3]});
+		matrix::Vector3d velocity({curr_odom.vx, curr_odom.vy, curr_odom.vz});
+		matrix::Vector3d angular_velocity; // TODO: We are missing this right now...
+		DrewOdometry odom = {position, orientation, velocity, angular_velocity};
+		_geometric_control.SetOdometry(odom);
 	}
+
+	// Perform an update for the geometric control...
+	matrix::Vector3d acceleration;
+	_geometric_control.ComputeDesiredAcceleration(&acceleration);
+	std::cout << "DESIRED ACCELERATION: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+
 
 	// I think we can get all of this from the vehicle_odometry topic maybe?
 
