@@ -36,15 +36,15 @@ LeePositionController::LeePositionController()
 LeePositionController::~LeePositionController() {}
 
 void LeePositionController::InitializeParameters() {
-  double kDefaultInertiaXx = 0.0347563;
-  double kDefaultInertiaYy = 0.0458929;
-  double kDefaultInertiaZz = 0.0977;
+  double kDefaultInertiaXx = 0.029125;
+  double kDefaultInertiaYy = 0.029125;
+  double kDefaultInertiaZz = 0.055225;
   
   inertia_matrix(0, 0) = kDefaultInertiaXx;
   inertia_matrix(1, 1) = kDefaultInertiaYy;
   inertia_matrix(2, 2) = kDefaultInertiaZz;
 
-  vehicle_mass = 1.56779;
+  vehicle_mass = 1.5;
 
 
   // (1x3) = (1 x 3) (3 * 3)
@@ -110,23 +110,25 @@ matrix::Vector3d cwiseProduct(const matrix::Vector3d& a, const matrix::Vector3d&
 void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceleration) const {
   assert(acceleration);
 
+  // Position is already in the NED frame
   matrix::Vector3d position_error;
-  position_error = odometry_.position - command_trajectory_.position_W;
+  position_error = command_trajectory_.position_W - odometry_.position;
+  std::cout << "The current position is " << odometry_.position(0) << odometry_.position(1) << odometry_.position(2) << std::endl;
   std::cout << "The normed position error is " << position_error.norm() << std::endl;
   
-  // Transform velocity to world frame.
-  const matrix::Quaterniond q_W_I = odometry_.orientation;
-  matrix::Quaterniond test;
-  matrix::Vector3d velocity_W = q_W_I.rotateVector(odometry_.velocity);
+  // I think velocity is already in the NED frame
+  // const matrix::Quaterniond q_W_I = odometry_.orientation;
+  // matrix::Vector3d velocity_W = q_W_I.rotateVector(odometry_.velocity);
 
-  matrix::Vector3d velocity_error;
-  velocity_error = velocity_W - command_trajectory_.velocity_W;
+  // matrix::Vector3d velocity_error;
+  // velocity_error = velocity_W - command_trajectory_.velocity_W;
+  matrix::Vector3d velocity_W = odometry_.velocity;
+  matrix::Vector3d velocity_error = command_trajectory_.velocity_W - velocity_W;
   std::cout << "The normed velocity error is " << velocity_error.norm() << std::endl;
-
   
   matrix::Vector3d e3({0, 0, 1});
   
-  *acceleration = (cwiseProduct(position_error, controller_parameters_.position_gain_)
+  *acceleration = (cwiseProduct(position_error, controller_parameters_.position_gain_)  // I thinks this acceleration would be in the body frame? 
       + cwiseProduct(velocity_error, controller_parameters_.velocity_gain_)) / vehicle_mass
       - 9.81 * e3 - command_trajectory_.acceleration_W;
 }

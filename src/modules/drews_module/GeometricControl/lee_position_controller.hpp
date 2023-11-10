@@ -111,6 +111,8 @@ class LeePositionControllerParameters {
   matrix::Vector3d attitude_gain_;
   matrix::Vector3d angular_rate_gain_;
   // RotorConfiguration rotor_configuration_;
+
+  
 };
 
 class LeePositionController {
@@ -131,12 +133,13 @@ class LeePositionController {
                                 matrix::Vector3d* angular_acceleration) const;
   void ComputeDesiredAcceleration(matrix::Vector3d* acceleration) const;
   
+  double vehicle_mass;
  private:
   bool initialized_params_;
   bool controller_active_;
 
   matrix::SquareMatrix<double, 3> inertia_matrix;
-  double vehicle_mass;
+  
 
   matrix::Vector3d normalized_attitude_gain_;
   matrix::Vector3d normalized_angular_rate_gain_;

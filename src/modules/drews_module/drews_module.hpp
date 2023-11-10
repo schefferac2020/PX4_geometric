@@ -193,8 +193,9 @@ private:
 	uORB::SubscriptionCallbackWorkItem _vehicle_odometry_sub {this, ORB_ID(vehicle_odometry)};
 
 	// Drew: Position setpoint stuff
-	uORB::Subscription _trajectory_setpoint_sub {ORB_ID(trajectory_setpoint)};
-	vehicle_local_position_setpoint_s _position_setpoint {};
+	// uORB::Subscription _trajectory_setpoint_sub {ORB_ID(trajectory_setpoint)};
+	uORB::Subscription _local_pos_setpoint_sub {ORB_ID(vehicle_local_position_setpoint)};
+	vehicle_local_position_setpoint_s _local_position_setpoint {};
 
 
 

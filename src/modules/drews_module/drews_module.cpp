@@ -249,7 +249,7 @@ DrewsModule::init()
 	}
 
 	// Set the desired trajectory...
-	DrewTrajPoint traj_point = {{1, 0, 0}, {2, 0, 0}, {1, 0, 0}};
+	DrewTrajPoint traj_point = {{0, 0, -2.6}, {0, 0, 0}, {0, 0, 0}}; // NED FRAME!
 	_geometric_control.SetTrajectoryPoint(traj_point);
 
 	return true;
@@ -296,6 +296,14 @@ DrewsModule::Run()
 	// publishTorqueSetpoint(torque_sp, hrt_absolute_time());
 	// publishThrustSetpoint(hrt_absolute_time());
 	// return;
+	// if (_local_pos_setpoint_sub.update(&_local_position_setpoint)) {
+	// 		std::cout << "NEW TRAJECTORY SETPOINT! --> " << _local_position_setpoint.x << _local_position_setpoint.y << _local_position_setpoint.z << std::endl;
+	// 		int r = 0;
+	// 		int x = 5/r;
+	// 		(void)x;
+	// 		assert(false);
+	// }
+
 
 	// Test to see if we can get new local_position...
 	vehicle_local_position_s local_pos;
@@ -303,10 +311,6 @@ DrewsModule::Run()
 		// PX4_INFO("RECIEVED UPDATE 1: The new position is %f, %f, %f\n", (double)local_pos.x, (double)local_pos.y, (double)local_pos.z);
 		(void)local_pos;
 	}
-
-	// TODO: get orientation... --- I think we want the vehicle_attitude uORB topic
-	// TODO: get body velocity --- 
-	// TODO: get angular velocity (DONE LOOK BELOW)
 
 	vehicle_odometry_s curr_odom;
 	if (_vehicle_odometry_sub.update(&curr_odom)) {
@@ -317,16 +321,25 @@ DrewsModule::Run()
 		matrix::Vector3d position({curr_odom.x, curr_odom.y, curr_odom.z});
 		matrix::Quaterniond orientation({(double)curr_odom.q[0], (double)curr_odom.q[1], (double)curr_odom.q[2], (double)curr_odom.q[3]});
 		matrix::Vector3d velocity({curr_odom.vx, curr_odom.vy, curr_odom.vz});
+		std::cout << "The velocity is " << velocity(0) << " " << velocity(1) << " " <<  velocity(2) << std::endl;
+
 		matrix::Vector3d angular_velocity; // TODO: We are missing this right now...
 		DrewOdometry odom = {position, orientation, velocity, angular_velocity};
 		_geometric_control.SetOdometry(odom);
 	}
 
+	// return;
+
+
 	// Perform an update for the geometric control...
 	matrix::Vector3d acceleration;
 	_geometric_control.ComputeDesiredAcceleration(&acceleration);
-	std::cout << "DESIRED ACCELERATION: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+	std::cout << "[GEOMETRIC CONTROLLER]: des_accel: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+	double desired_force = -(acceleration(2)*_geometric_control.vehicle_mass);
+	double geometric_normalized_thrust = desired_force / 26.7813;
 
+	geometric_normalized_thrust = std::min(0.8, geometric_normalized_thrust);
+	std::cout << "[GEOMETRIC CONTROLLER]: des_force: " << desired_force << " normalized: " << geometric_normalized_thrust << std::endl;
 
 	// I think we can get all of this from the vehicle_odometry topic maybe?
 
@@ -378,6 +391,7 @@ DrewsModule::Run()
 			_rates_sp(1) = PX4_ISFINITE(v_rates_sp.pitch) ? v_rates_sp.pitch : rates(1);
 			_rates_sp(2) = PX4_ISFINITE(v_rates_sp.yaw)   ? v_rates_sp.yaw   : rates(2);
 			_thrust_sp = -v_rates_sp.thrust_body[2];
+			_thrust_sp = geometric_normalized_thrust;
 
 
 			/*** CUSTOM ***/
@@ -445,7 +459,6 @@ DrewsModule::Run()
 
 			/*** CUSTOM ***/
 			if(_param_airframe.get() == 11 && _param_tilting_type.get() == 0 && _param_mpc_pitch_on_tilt.get()){
-				PX4_DEBUG("In here!\n");
 				actuators.control[actuator_controls_s::INDEX_FLAPS] = PX4_ISFINITE(_tilting_angle_sp) ? _tilting_angle_sp : 0.0f;
 			}
 			/*** END-CUSTOM ***/
@@ -498,6 +511,8 @@ void DrewsModule::publishThrustSetpoint(const hrt_abstime &timestamp_sample)
 	_thrust_setpoint.copyTo(v_thrust_sp.xyz);
 	/*** END-CUSTOM ***/
 	v_thrust_sp.xyz[2] = PX4_ISFINITE(_thrust_sp) ? -_thrust_sp : 0.0f; // Z is Down
+	
+	std::cout << "[PID CONTROLLER]: thrust setpoint" << v_thrust_sp.xyz[2] << std::endl;
 
 	// v_thrust_sp.xyz[2] = -0.7;
 	_vehicle_thrust_setpoint_pub.publish(v_thrust_sp);
