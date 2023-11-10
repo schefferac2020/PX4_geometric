@@ -72,19 +72,27 @@ struct DrewTrajPoint {
   DrewTrajPoint()
       : position_W(0.0, 0.0, 0.0),
         velocity_W(0.0, 0.0, 0.0),
-        acceleration_W(0.0, 0.0, 0.0) {};
+        acceleration_W(0.0, 0.0, 0.0),
+        yaw(0.0),
+        yaw_rate(0.0) {};
     
   DrewTrajPoint(const matrix::Vector3d& _position_W,
                 const matrix::Vector3d& _velocity_W,
-                const matrix::Vector3d& _acceleration_W) {
+                const matrix::Vector3d& _acceleration_W,
+                double _yaw,
+                double _yaw_rate) {
     position_W = _position_W;
     velocity_W = _velocity_W;
     acceleration_W = _acceleration_W;
+    this->yaw = _yaw;
+    this->yaw_rate = _yaw_rate;
   };
 
   matrix::Vector3d position_W;
   matrix::Vector3d velocity_W;
   matrix::Vector3d acceleration_W;
+  double yaw;
+  double yaw_rate;
 };
 
 

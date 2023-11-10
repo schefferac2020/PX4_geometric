@@ -107,6 +107,14 @@ matrix::Vector3d cwiseProduct(const matrix::Vector3d& a, const matrix::Vector3d&
   return matrix::Vector3d({a(0)*b(0), a(1)*b(1), a(2)*b(2)});
 }
 
+void vectorFromSkewMatrix(matrix::Matrix3d& skew_matrix, matrix::Vector3d* vector) {
+  // *vector << skew_matrix(2, 1), skew_matrix(0,2), skew_matrix(1, 0);
+
+  (*vector)(0) = skew_matrix(2, 1);
+  (*vector)(1) = skew_matrix(0,2);
+  (*vector)(2) = skew_matrix(1, 0);
+}
+
 void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceleration) const {
   assert(acceleration);
 
@@ -137,39 +145,35 @@ void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceler
 // Control of complex maneuvers for a quadrotor UAV using geometric methods on SE(3)
 void LeePositionController::ComputeDesiredAngularAcc(const matrix::Vector3d& acceleration,
                                                      matrix::Vector3d* angular_acceleration) const {
-  // assert(angular_acceleration);
+  assert(angular_acceleration);
 
-  // Eigen::Matrix3d R = odometry_.orientation.toRotationMatrix();
+  matrix::Dcm<double> R = matrix::Dcm<double>(odometry_.orientation);
 
-  // // Get the desired rotation matrix.
-  // Eigen::Vector3d b1_des;
-  // double yaw = command_trajectory_.getYaw();
-  // b1_des << cos(yaw), sin(yaw), 0;
+  
+  double yaw = command_trajectory_.yaw;
+  matrix::Vector3d b1_des(cos(yaw), sin(yaw), 0);
 
-  // Eigen::Vector3d b3_des;
-  // b3_des = -acceleration / acceleration.norm();
+  matrix::Vector3d b3_des;
+  b3_des = -acceleration / acceleration.norm();
 
-  // Eigen::Vector3d b2_des;
-  // b2_des = b3_des.cross(b1_des);
-  // b2_des.normalize();
+  matrix::Vector3d b2_des;
+  b2_des = b3_des.cross(b1_des);
+  b2_des.normalize();
 
-  // Eigen::Matrix3d R_des;
-  // R_des.col(0) = b2_des.cross(b3_des);
-  // R_des.col(1) = b2_des;
-  // R_des.col(2) = b3_des;
+  matrix::Matrix3d R_des;
+  R_des.col(0) = b2_des.cross(b3_des);
+  R_des.col(1) = b2_des;
+  R_des.col(2) = b3_des;
 
-  // // Angle error according to lee et al.
-  // Eigen::Matrix3d angle_error_matrix = 0.5 * (R_des.transpose() * R - R.transpose() * R_des);
-  // Eigen::Vector3d angle_error;
-  // vectorFromSkewMatrix(angle_error_matrix, &angle_error);
+  matrix::Matrix3d angle_error_matrix = 0.5 * (R_des.transpose() * R - R.transpose() * R_des);
+  matrix::Vector3d angle_error;
+  vectorFromSkewMatrix(angle_error_matrix, &angle_error);
 
-  // // TODO(burrimi) include angular rate references at some point.
-  // Eigen::Vector3d angular_rate_des(Eigen::Vector3d::Zero());
-  // angular_rate_des[2] = command_trajectory_.getYawRate();
+  matrix::Vector3d angular_rate_des(0, 0, 0);
+  angular_rate_des(2) = command_trajectory_.yaw_rate;
+  matrix::Vector3d angular_rate_error = (R.transpose() * odometry_.angular_velocity) - R_des.transpose() * R * angular_rate_des; // TODO changed this from --=> dometry_.angular_velocity - R_des.transpose() * R * angular_rate_des; Because we thing the angular rates are in 
 
-  // Eigen::Vector3d angular_rate_error = odometry_.angular_velocity - R_des.transpose() * R * angular_rate_des;
-
-  // *angular_acceleration = -1 * angle_error.cwiseProduct(normalized_attitude_gain_)
-  //                          - angular_rate_error.cwiseProduct(normalized_angular_rate_gain_)
-  //                          + odometry_.angular_velocity.cross(odometry_.angular_velocity); // we don't need the inertia matrix here
+  *angular_acceleration =  - cwiseProduct(angle_error, normalized_attitude_gain_)
+                           - cwiseProduct(angular_rate_error, normalized_angular_rate_gain_);
+                           //+ odometry_.angular_velocity.cross(odometry_.angular_velocity); // we don't need the inertia matrix here
 }

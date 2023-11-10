@@ -539,6 +539,7 @@ public:
 		R_z(2) = a * a - b * b - c * c + d * d;
 		return R_z;
 	}
+
 };
 
 using Quatf = Quaternion<float>;

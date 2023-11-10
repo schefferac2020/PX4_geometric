@@ -249,7 +249,7 @@ DrewsModule::init()
 	}
 
 	// Set the desired trajectory...
-	DrewTrajPoint traj_point = {{0, 0, -2.6}, {0, 0, 0}, {0, 0, 0}}; // NED FRAME!
+	DrewTrajPoint traj_point = {{0, 0, -2.6}, {0, 0, 0}, {0, 0, 0}, 0, 0}; // NED FRAME!
 	_geometric_control.SetTrajectoryPoint(traj_point);
 
 	return true;
@@ -333,13 +333,16 @@ DrewsModule::Run()
 
 	// Perform an update for the geometric control...
 	matrix::Vector3d acceleration;
+	matrix::Vector3d ang_acceleration;
 	_geometric_control.ComputeDesiredAcceleration(&acceleration);
-	std::cout << "[GEOMETRIC CONTROLLER]: des_accel: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+	_geometric_control.ComputeDesiredAngularAcc(acceleration, &ang_acceleration);
+	//std::cout << "[GEOMETRIC CONTROLLER]: des_accel: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+	std::cout << "[GEOMETRIC CONTROLLER]: desired angular accel: " << ang_acceleration(0) << " " << ang_acceleration(1) << " " <<  ang_acceleration(2) << std::endl;
 	double desired_force = -(acceleration(2)*_geometric_control.vehicle_mass);
 	double geometric_normalized_thrust = desired_force / 26.7813;
 
 	geometric_normalized_thrust = std::min(0.8, geometric_normalized_thrust);
-	std::cout << "[GEOMETRIC CONTROLLER]: des_force: " << desired_force << " normalized: " << geometric_normalized_thrust << std::endl;
+	//std::cout << "[GEOMETRIC CONTROLLER]: des_force: " << desired_force << " normalized: " << geometric_normalized_thrust << std::endl;
 
 	// I think we can get all of this from the vehicle_odometry topic maybe?
 
@@ -449,6 +452,7 @@ DrewsModule::Run()
 
 			// publish actuator controls
 			actuator_controls_s actuators{};
+
 			// These are torques...
 			actuators.control[actuator_controls_s::INDEX_ROLL] = PX4_ISFINITE(att_control(0)) ? att_control(0) : 0.0f;
 			actuators.control[actuator_controls_s::INDEX_PITCH] = PX4_ISFINITE(att_control(1)) ? att_control(1) : 0.0f;
