@@ -38,6 +38,7 @@
 #include <lib/matrix/matrix/math.hpp>
 #include <px4_platform_common/events.h>
 #include "PositionControl/ControlMath.hpp"
+#include <iostream>
 
 using namespace matrix;
 

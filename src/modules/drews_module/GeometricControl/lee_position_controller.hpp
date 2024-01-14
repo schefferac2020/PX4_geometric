@@ -99,8 +99,13 @@ struct DrewTrajPoint {
 // Default values for the lee position controller and the Asctec Firefly.
 static const matrix::Vector3d kDefaultPositionGain = matrix::Vector3d(6, 6, 6);
 static const matrix::Vector3d kDefaultVelocityGain = matrix::Vector3d(4.7, 4.7, 4.7);
-static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(3, 3, 0.035);
-static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(0.52, 0.52, 0.025);
+static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(10, 10, 0.35) / 1000;
+static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(-.5, .5, 0) / 1000;
+
+/**
+static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(3, 3, 0.035) / 1000;
+static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(0.52, 0.52, 0.025) / 1000;
+*/
 
 class LeePositionControllerParameters {
  public:
@@ -128,6 +133,8 @@ class LeePositionController {
   LeePositionController();
   ~LeePositionController();
   void InitializeParameters();
+
+  DrewOdometry GetOdometry();
   
   // void CalculateRotorVelocities(matrix::VectorXd* rotor_velocities) const;
 

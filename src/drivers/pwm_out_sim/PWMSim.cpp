@@ -40,6 +40,7 @@
 #include <uORB/topics/parameter_update.h>
 
 #include <px4_platform_common/sem.hpp>
+#include <iostream>
 
 PWMSim::PWMSim(bool hil_mode_enabled) :
 	CDev(PWM_OUTPUT0_DEVICE_PATH),
@@ -85,6 +86,8 @@ bool
 PWMSim::updateOutputs(bool stop_motors, uint16_t outputs[MAX_ACTUATORS], unsigned num_outputs,
 		      unsigned num_control_groups_updated)
 {
+
+
 	// Only publish once we receive actuator_controls (important for lock-step to work correctly)
 	if (num_control_groups_updated > 0) {
 		actuator_outputs_s actuator_outputs{};
