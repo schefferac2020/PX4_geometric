@@ -1,23 +1,3 @@
-/*
- * Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
- * Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
- * Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
- * Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
- * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include "lee_position_controller.hpp"
 #include <iostream>
 /**
@@ -46,9 +26,9 @@ void LeePositionController::InitializeParameters() {
 
   vehicle_mass = 1.5;
 
-
   // (1x3) = (1 x 3) (3 * 3)
-  normalized_attitude_gain_ = (controller_parameters_.attitude_gain_.transpose() * inertia_matrix.I()).T(); // TODO: Maybe these aren't supposed to be transpose? 
+  normalized_attitude_gain_ = (controller_parameters_.attitude_gain_.transpose() * inertia_matrix.I()).T(); // TODO: Maybe these aren't supposed to be transpose?
+
   normalized_angular_rate_gain_ = (controller_parameters_.angular_rate_gain_.transpose() * inertia_matrix.I()).T();
   // matrix::SquareMatrix<float, 4> I;  
   // I.setZero();
@@ -114,7 +94,7 @@ void vectorFromSkewMatrix(matrix::Matrix3d& skew_matrix, matrix::Vector3d* vecto
   // *vector << skew_matrix(2, 1), skew_matrix(0,2), skew_matrix(1, 0);
 
   (*vector)(0) = skew_matrix(2, 1);
-  (*vector)(1) = skew_matrix(0,2);
+  (*vector)(1) = skew_matrix(0, 2);
   (*vector)(2) = skew_matrix(1, 0);
 }
 
@@ -212,9 +192,9 @@ void LeePositionController::ComputeDesiredAngularAcc(const matrix::Vector3d& acc
   // std::cout << "1. angle_error: " << angle_error(0) << " " << angle_error(1) << " " << angle_error(2) << "\n"; 
   std::cout << "angular_rate_error: " << angular_rate_error(0) << " " << angular_rate_error(1) << " " << angular_rate_error(2) << "\n"; 
 
+  // auto val = odometry_.angular_velocity.cross(inertia_matrix * odometry_.angular_velocity);
 
-
-  *angular_acceleration =   cwiseProduct(angle_error, normalized_attitude_gain_)
-                           - cwiseProduct(angular_rate_error, normalized_angular_rate_gain_);
-                           //+ odometry_.angular_velocity.cross(odometry_.angular_velocity); // we don't need the inertia matrix here
+  *angular_acceleration = cwiseProduct(angle_error, controller_parameters_.attitude_gain_)
+                          -cwiseProduct(angular_rate_error, controller_parameters_.angular_rate_gain_)
+                           + odometry_.angular_velocity.cross(inertia_matrix * odometry_.angular_velocity); // we don't need the inertia matrix here
 }

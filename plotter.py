@@ -53,8 +53,13 @@ desired_angular_accel = parse_file(dummy_filename, "[GEOMETRIC CONTROLLER]: desi
 curr_angle = parse_file(dummy_filename, "curr_angle:")
 desired_angle = parse_file(dummy_filename, "desired_angle:")
 angular_rate_error = parse_file(dummy_filename, "angular_rate_error:")
+PID_values = parse_file(dummy_filename, "[PID CONTROLLER]: desired angular accel: ")
+GEO_values = parse_file(dummy_filename, "[GEO CONTROLLER]: desired angular accel: ")
 
-val = min(len(position_err), len(angle_err), len(desired_angular_accel), len(desired_angle), len(curr_angle), len(angular_rate_error))
+
+
+
+val = min(len(position_err), len(angle_err), len(desired_angular_accel), len(desired_angle), len(curr_angle), len(GEO_values), len(angular_rate_error), len(PID_values))
 
 
 
@@ -68,6 +73,8 @@ desired_angular_accel = desired_angular_accel[:val]
 curr_angle = curr_angle[:val]
 desired_angle = desired_angle[:val]
 angular_rate_error = angular_rate_error[:val]
+PID_values = PID_values[:val]
+GEO_values = GEO_values[:val]
 
 test_name = create_directory_with_timestamp(".")
 if not os.path.exists(test_name):
@@ -79,4 +86,6 @@ plot_data(time, desired_angular_accel, 'Desired Angular Acceleration', 'Angular 
 plot_data(time, curr_angle, 'Current Angle', 'Current Angle', f'{test_name}/out_ang.png')
 plot_data(time, desired_angle, 'desired_angle', 'desired_angle', f'{test_name}/out_des_ang.png')
 plot_data(time, angular_rate_error, 'angular_rate_error', 'angular_rate_error', f'{test_name}/angular_rate_error')
+plot_data(time, PID_values, 'PID_values', 'PID_values', f'{test_name}/PID_values')
+plot_data(time, GEO_values, 'GEO_values', 'GEO_values', f'{test_name}/GEO_values')
 plt.show()

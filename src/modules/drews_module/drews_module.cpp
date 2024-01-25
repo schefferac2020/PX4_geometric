@@ -250,7 +250,7 @@ DrewsModule::init()
 
 	// Set the desired trajectory...
 	double yaw_des = 3.14159/2;
-	DrewTrajPoint traj_point = {{0, 0, -1}, {0, 0, 0}, {0, 0, 0}, yaw_des, 0}; // NED FRAME!
+	DrewTrajPoint traj_point = {{0, 0, -3}, {0, 0, 0}, {0, 0, 0}, yaw_des, 0}; // NED FRAME!
 	_geometric_control.SetTrajectoryPoint(traj_point);
 
 	return true;
@@ -314,9 +314,11 @@ DrewsModule::Run()
 	// 	PX4_INFO("RECIEVED UPDATE DREW: The new position is %f, %f, %f\n", (double)local_pos.x, (double)local_pos.y, (double)local_pos.z);
 	// 	(void)local_pos;
 	// }
-
+	static int thing = 0;
 	vehicle_odometry_s curr_odom;
 	if (_vehicle_odometry_sub.update(&curr_odom)) {
+		thing ++;
+		std::cout << "UPDATED ODOM!" << thing << std::endl;
 		//NOTE: The position is in the earth-fixed NED frame. -- 0
 		//NOTE: The velocity data is wrt the earth-fixed FRD frame (arbitrary heading reference) -- 1
 
@@ -347,7 +349,7 @@ DrewsModule::Run()
 	double projected_acceleration = -acceleration.dot(R.col(2));
 
 	double desired_force = (projected_acceleration*_geometric_control.vehicle_mass);
-	double geometric_normalized_thrust = desired_force / 22.78; //26.7813;
+	double geometric_normalized_thrust = desired_force /21; //26.7813;
 
 	geometric_normalized_thrust = std::min(0.99, geometric_normalized_thrust);
 	matrix::Vector3f geometric_normalized_ang_accel;
@@ -357,9 +359,11 @@ DrewsModule::Run()
 	geometric_normalized_ang_accel(1) = (float)ang_acceleration(1) / factor;
 	geometric_normalized_ang_accel(2) = (float)ang_acceleration(2) / factor;
 	std::cout << "[GEOMETRIC CONTROLLER]: desired accel: " << acceleration(0) << " " << acceleration(1) << " " <<  acceleration(2) << std::endl;
+	std::cout << "[GEOMETRIC CONTROLLER]: PROJECTED ACCEL: " << projected_acceleration << std::endl;
+	std::cout << "[GEOMETRIC CONTROLLER]: COMPUTED THRUST: " << geometric_normalized_thrust << std::endl;
 	std::cout << "[GEOMETRIC CONTROLLER]: desired angular accel: " << geometric_normalized_ang_accel(0) << " " << geometric_normalized_ang_accel(1) << " " <<  geometric_normalized_ang_accel(2) << std::endl;
 
-
+	geometric_normalized_thrust = 0.75;
 	//std::cout << "[GEOMETRIC CONTROLLER]: des_force: " << desired_force << " normalized: " << geometric_normalized_thrust << std::endl;
 
 	// I think we can get all of this from the vehicle_odometry topic maybe?
@@ -412,7 +416,9 @@ DrewsModule::Run()
 			_rates_sp(1) = PX4_ISFINITE(v_rates_sp.pitch) ? v_rates_sp.pitch : rates(1);
 			_rates_sp(2) = PX4_ISFINITE(v_rates_sp.yaw)   ? v_rates_sp.yaw   : rates(2);
 			_thrust_sp = -v_rates_sp.thrust_body[2];
-			_thrust_sp = geometric_normalized_thrust;
+			if(geometric || true){
+				_thrust_sp = geometric_normalized_thrust;
+			}
 
 
 			/*** CUSTOM ***/
@@ -460,7 +466,7 @@ DrewsModule::Run()
 			}
 
 			// run rate controller
-			const Vector3f att_control = _rate_control.update(rates, _rates_sp, angular_accel, dt, _maybe_landed || _landed);
+			Vector3f att_control = _rate_control.update(rates, _rates_sp, angular_accel, dt, _maybe_landed || _landed);
 			(void)att_control;
 			// publish rate controller status
 			rate_ctrl_status_s rate_ctrl_status{};
@@ -472,6 +478,8 @@ DrewsModule::Run()
 			actuator_controls_s actuators{};
 
 			// These are torques...
+
+			// att_control(1) = geometric_normalized_ang_accel(1);
 			
 			actuators.control[actuator_controls_s::INDEX_ROLL] = PX4_ISFINITE(att_control(0)) ? att_control(0) : 0.0f;
 			actuators.control[actuator_controls_s::INDEX_PITCH] = PX4_ISFINITE(att_control(1)) ? att_control(1) : 0.0f;
@@ -487,6 +495,9 @@ DrewsModule::Run()
 				actuators.control[actuator_controls_s::INDEX_PITCH] = PX4_ISFINITE(geometric_normalized_ang_accel(1)) ? geometric_normalized_ang_accel(1) : 0.0f;
 				actuators.control[actuator_controls_s::INDEX_YAW] = PX4_ISFINITE(geometric_normalized_ang_accel(2)) ? geometric_normalized_ang_accel(2) : 0.0f;
 			}
+
+			std::cout << "[GEO CONTROLLER]: desired angular accel: " << geometric_normalized_ang_accel(0) << " " << geometric_normalized_ang_accel(1) << " " <<  geometric_normalized_ang_accel(2) << std::endl;
+
 
 			
 

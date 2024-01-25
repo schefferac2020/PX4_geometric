@@ -97,10 +97,15 @@ struct DrewTrajPoint {
 
 
 // Default values for the lee position controller and the Asctec Firefly.
-static const matrix::Vector3d kDefaultPositionGain = matrix::Vector3d(6, 6, 6);
-static const matrix::Vector3d kDefaultVelocityGain = matrix::Vector3d(4.7, 4.7, 4.7);
-static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(10, 10, 0.35) / 1000;
-static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(-.5, .5, 0) / 1000;
+// static const matrix::Vector3d kDefaultPositionGain = matrix::Vector3d(6, 6, 6);
+// static const matrix::Vector3d kDefaultVelocityGain = matrix::Vector3d(4.7, 4.7, 4.7);
+// static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(10, 10, 0.35) / 1000;
+// static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(-.5, .5, 0) / 1000;
+static double fact = 1;
+static const matrix::Vector3d kDefaultPositionGain = fact*0*matrix::Vector3d(1, 1, 1);
+static const matrix::Vector3d kDefaultVelocityGain = fact*0*matrix::Vector3d(1, 1, 1);
+static const matrix::Vector3d kDefaultAttitudeGain = fact*0.5*matrix::Vector3d(1, 1, 1);
+static const matrix::Vector3d kDefaultAngularRateGain = fact*0.05*matrix::Vector3d(1, 1, 1);
 
 /**
 static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(3, 3, 0.035) / 1000;
