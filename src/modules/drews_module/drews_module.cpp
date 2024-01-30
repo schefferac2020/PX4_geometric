@@ -363,7 +363,7 @@ DrewsModule::Run()
 	std::cout << "[GEOMETRIC CONTROLLER]: COMPUTED THRUST: " << geometric_normalized_thrust << std::endl;
 	std::cout << "[GEOMETRIC CONTROLLER]: desired angular accel: " << geometric_normalized_ang_accel(0) << " " << geometric_normalized_ang_accel(1) << " " <<  geometric_normalized_ang_accel(2) << std::endl;
 
-	geometric_normalized_thrust = 0.75;
+	// geometric_normalized_thrust = 0.75;
 	//std::cout << "[GEOMETRIC CONTROLLER]: des_force: " << desired_force << " normalized: " << geometric_normalized_thrust << std::endl;
 
 	// I think we can get all of this from the vehicle_odometry topic maybe?

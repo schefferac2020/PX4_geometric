@@ -105,6 +105,7 @@ void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceler
   matrix::Vector3d position_error;
   position_error = command_trajectory_.position_W - odometry_.position;
   std::cout << "The current position is " << odometry_.position(0) << odometry_.position(1) << odometry_.position(2) << std::endl;
+  std::cout << "The desired position is " << command_trajectory_.position_W(0) << command_trajectory_.position_W(1) << command_trajectory_.position_W(2) << std::endl;
   std::cout << "position_err: " << position_error(0) << " " << position_error(1) << " " << position_error(2) << " " << std::endl;
   
   // I think velocity is already in the NED frame
@@ -117,7 +118,6 @@ void LeePositionController::ComputeDesiredAcceleration(matrix::Vector3d* acceler
   matrix::Vector3d velocity_error = command_trajectory_.velocity_W - velocity_W;
   // std::cout << "The normed velocity error is " << velocity_error.norm() << std::endl;
   // std::cout << "Odometry position: " << odometry_.position(0) << " " << odometry_.position(1) << " " << odometry_.position(2) << std::endl;
-  // std::cout << "Postion error: " << position_error(0) << " "  << position_error(1) << " " << position_error(2) << " velocity error: " << velocity_error(0) << " " << velocity_error(1) << " " <<velocity_error(2) << " " << std::endl;
   matrix::Vector3d e3({0, 0, 1});
   
   *acceleration = (cwiseProduct(position_error, controller_parameters_.position_gain_)  // I thinks this acceleration would be in the body frame? 
@@ -187,10 +187,11 @@ void LeePositionController::ComputeDesiredAngularAcc(const matrix::Vector3d& acc
 
   matrix::Vector3d angular_rate_des(0, 0, 0);
   angular_rate_des(2) = command_trajectory_.yaw_rate;
-  matrix::Vector3d angular_rate_error = (R.transpose() * odometry_.angular_velocity) - R_des.transpose() * R * angular_rate_des; // TODO changed this from --=> dometry_.angular_velocity - R_des.transpose() * R * angular_rate_des; Because we thing the angular rates are in 
+  matrix::Vector3d angular_rate_error = (odometry_.angular_velocity) - R.transpose() * R_des * angular_rate_des; // TODO changed this from --=> dometry_.angular_velocity - R_des.transpose() * R * angular_rate_des; Because we thing the angular rates are in 
   (void)angular_rate_error;
   // std::cout << "1. angle_error: " << angle_error(0) << " " << angle_error(1) << " " << angle_error(2) << "\n"; 
   std::cout << "angular_rate_error: " << angular_rate_error(0) << " " << angular_rate_error(1) << " " << angular_rate_error(2) << "\n"; 
+  std::cout << "angular_velocy: " << odometry_.angular_velocity(0) << " " << odometry_.angular_velocity(1) << " " << odometry_.angular_velocity(2) << "\n"; 
 
   // auto val = odometry_.angular_velocity.cross(inertia_matrix * odometry_.angular_velocity);
 
