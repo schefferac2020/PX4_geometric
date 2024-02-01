@@ -102,8 +102,8 @@ struct DrewTrajPoint {
 // static const matrix::Vector3d kDefaultAttitudeGain = matrix::Vector3d(10, 10, 0.35) / 1000;
 // static const matrix::Vector3d kDefaultAngularRateGain = matrix::Vector3d(-.5, .5, 0) / 1000;
 static double fact = 1;
-static const matrix::Vector3d kDefaultPositionGain = fact*matrix::Vector3d(1, 1, 1);
-static const matrix::Vector3d kDefaultVelocityGain = fact*matrix::Vector3d(1, 1, 1);
+static const matrix::Vector3d kDefaultPositionGain = fact*matrix::Vector3d(0.6, 0.6, 0.6);
+static const matrix::Vector3d kDefaultVelocityGain = fact*matrix::Vector3d(0.7, 0.7, 0.7);
 static const matrix::Vector3d kDefaultAttitudeGain = fact*0.5*matrix::Vector3d(1, 1, 1);
 static const matrix::Vector3d kDefaultAngularRateGain = fact*0.05*matrix::Vector3d(1, 1, 1);
 
